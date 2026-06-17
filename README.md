@@ -2,6 +2,7 @@
 
 Ferramenta web para aplicar patches de tradução em ROMs de jogos retrô. Roda 100% no navegador — nenhum arquivo é enviado a servidor.
 
+[Clique aqui para acessar o IPS Patcher](https://israelsanttana.github.io/IPS-Patcher/)
 
 ## Demonstração
 
