@@ -2,6 +2,11 @@
 
 Ferramenta web para aplicar patches de tradução em ROMs de jogos retrô. Roda 100% no navegador — nenhum arquivo é enviado a servidor.
 
+
+## Demonstração
+
+![Tela do patcher](assets/ips-img.png)
+
 ## Como usar
 
 1. Abra o `ips-patcher.html` no navegador (ou acesse via GitHub Pages)
