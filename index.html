@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IPS Patcher</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f0f13;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: #1a1a24;
+      border: 1px solid #2a2a3a;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 32px;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+
+    .dropzone {
+      border: 2px dashed #2a2a3a;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .dropzone:hover, .dropzone.drag-over {
+      border-color: #6c63ff;
+      background: rgba(108, 99, 255, 0.06);
+    }
+
+    .dropzone.selected {
+      border-color: #4ade80;
+      border-style: solid;
+      background: rgba(74, 222, 128, 0.05);
+    }
+
+    .dropzone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .dropzone-icon {
+      font-size: 1.8rem;
+      margin-bottom: 6px;
+    }
+
+    .dropzone-text {
+      font-size: 0.85rem;
+      color: #555;
+    }
+
+    .dropzone.selected .dropzone-text {
+      color: #4ade80;
+      font-weight: 600;
+    }
+
+    .dropzone-hint {
+      font-size: 0.75rem;
+      color: #444;
+      margin-top: 4px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 12px;
+    }
+
+    .btn-primary {
+      background: #6c63ff;
+      color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #7c73ff;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      background: #2a2a3a;
+      color: #444;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    .status.success {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      color: #4ade80;
+      display: block;
+    }
+
+    .status.error {
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      color: #f87171;
+      display: block;
+    }
+
+    .status.loading {
+      background: rgba(108, 99, 255, 0.1);
+      border: 1px solid rgba(108, 99, 255, 0.3);
+      color: #a5b4fc;
+      display: block;
+    }
+
+    .footer {
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid #2a2a3a;
+      font-size: 0.75rem;
+      color: #444;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🎮 IPS Patcher</h1>
+    <p class="subtitle">Aplica patches de tradução em ROMs de GBA, NES, SNES e mais.</p>
+
+    <div class="field">
+      <label>ROM do jogo</label>
+      <div class="dropzone" id="zone-rom">
+        <input type="file" id="input-rom" accept=".gba,.nes,.sfc,.smc,.gb,.gbc,.nds,.zip" />
+        <div class="dropzone-icon">🗂️</div>
+        <div class="dropzone-text">Clique ou arraste a ROM aqui</div>
+        <div class="dropzone-hint">.gba · .nes · .sfc · .gb · .gbc · .nds · .zip</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Patch de tradução</label>
+      <div class="dropzone" id="zone-ips">
+        <input type="file" id="input-ips" accept=".ips" />
+        <div class="dropzone-icon">🩹</div>
+        <div class="dropzone-text">Clique ou arraste o patch aqui</div>
+        <div class="dropzone-hint">.ips</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-apply" disabled>Aplicar patch</button>
+
+    <div class="status" id="status"></div>
+
+    <div class="footer">Tudo processado localmente — nenhum arquivo é enviado à internet.</div>
+  </div>
+
+  <script>
+    const inputRom = document.getElementById('input-rom');
+    const inputIps = document.getElementById('input-ips');
+    const zoneRom = document.getElementById('zone-rom');
+    const zoneIps = document.getElementById('zone-ips');
+    const btnApply = document.getElementById('btn-apply');
+    const status = document.getElementById('status');
+
+    let romFile = null;
+    let ipsFile = null;
+
+    function setStatus(type, msg) {
+      status.className = 'status ' + type;
+      status.textContent = msg;
+    }
+
+    function updateBtn() {
+      btnApply.disabled = !(romFile && ipsFile);
+    }
+
+    function markSelected(zone, filename) {
+      zone.classList.add('selected');
+      zone.querySelector('.dropzone-text').textContent = filename;
+      zone.querySelector('.dropzone-icon').textContent = '✅';
+    }
+
+    inputRom.addEventListener('change', () => {
+      romFile = inputRom.files[0] || null;
+      if (romFile) markSelected(zoneRom, romFile.name);
+      updateBtn();
+    });
+
+    inputIps.addEventListener('change', () => {
+      ipsFile = inputIps.files[0] || null;
+      if (ipsFile) markSelected(zoneIps, ipsFile.name);
+      updateBtn();
+    });
+
+    // Drag & drop visual
+    [zoneRom, zoneIps].forEach(zone => {
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        if (zone === zoneRom) {
+          romFile = file;
+          markSelected(zoneRom, file.name);
+        } else {
+          ipsFile = file;
+          markSelected(zoneIps, file.name);
+        }
+        updateBtn();
+      });
+    });
+
+    function applyIPS(romBuffer, ipsBuffer) {
+      const rom = new Uint8Array(romBuffer);
+      const ips = new Uint8Array(ipsBuffer);
+
+      // Validate header
+      const header = String.fromCharCode(...ips.slice(0, 5));
+      if (header !== 'PATCH') throw new Error('Arquivo IPS inválido.');
+
+      // Calculate max size needed
+      let maxSize = rom.length;
+      let pos = 5;
+      while (pos < ips.length) {
+        if (ips[pos] === 0x45 && ips[pos+1] === 0x4F && ips[pos+2] === 0x46) break;
+        const offset = (ips[pos] << 16) | (ips[pos+1] << 8) | ips[pos+2]; pos += 3;
+        const size = (ips[pos] << 8) | ips[pos+1]; pos += 2;
+        if (size === 0) {
+          const rleSize = (ips[pos] << 8) | ips[pos+1]; pos += 3;
+          maxSize = Math.max(maxSize, offset + rleSize);
+        } else {
+          maxSize = Math.max(maxSize, offset + size);
+          pos += size;
+        }
+      }
+
+      // Create output buffer
+      const out = new Uint8Array(maxSize);
+      out.set(rom);
+
+      // Apply patches
+      pos = 5;
+      let records = 0;
+      while (pos < ips.length) {
+        if (ips[pos] === 0x45 && ips[pos+1] === 0x4F && ips[pos+2] === 0x46) break;
+        const offset = (ips[pos] << 16) | (ips[pos+1] << 8) | ips[pos+2]; pos += 3;
+        const size = (ips[pos] << 8) | ips[pos+1]; pos += 2;
+
+        if (size === 0) {
+          const rleSize = (ips[pos] << 8) | ips[pos+1]; pos += 2;
+          const rleByte = ips[pos]; pos += 1;
+          out.fill(rleByte, offset, offset + rleSize);
+        } else {
+          out.set(ips.slice(pos, pos + size), offset);
+          pos += size;
+        }
+        records++;
+      }
+
+      return { out, records };
+    }
+
+    async function extractRomFromZip(zipBuffer) {
+      // Minimal ZIP parser — finds the first file entry and returns its raw deflated data
+      const bytes = new Uint8Array(zipBuffer);
+      let pos = 0;
+
+      while (pos < bytes.length - 4) {
+        // Local file header signature: PK\x03\x04
+        if (bytes[pos] === 0x50 && bytes[pos+1] === 0x4B && bytes[pos+2] === 0x03 && bytes[pos+3] === 0x04) {
+          const compression = bytes[pos+8] | (bytes[pos+9] << 8);
+          const compSize    = bytes[pos+18] | (bytes[pos+19] << 8) | (bytes[pos+20] << 16) | (bytes[pos+21] << 24);
+          const uncompSize  = bytes[pos+22] | (bytes[pos+23] << 8) | (bytes[pos+24] << 16) | (bytes[pos+25] << 24);
+          const fnLen       = bytes[pos+26] | (bytes[pos+27] << 8);
+          const extraLen    = bytes[pos+28] | (bytes[pos+29] << 8);
+          const filename    = new TextDecoder().decode(bytes.slice(pos+30, pos+30+fnLen));
+          const dataStart   = pos + 30 + fnLen + extraLen;
+
+          // Skip directories
+          if (filename.endsWith('/')) { pos = dataStart + compSize; continue; }
+
+          const compData = bytes.slice(dataStart, dataStart + compSize);
+
+          if (compression === 0) {
+            // Stored (no compression)
+            return { buffer: compData.buffer, name: filename };
+          } else if (compression === 8) {
+            // Deflate
+            const ds = new DecompressionStream('deflate-raw');
+            const writer = ds.writable.getWriter();
+            writer.write(compData);
+            writer.close();
+            const chunks = [];
+            const reader = ds.readable.getReader();
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              chunks.push(value);
+            }
+            const out = new Uint8Array(uncompSize);
+            let offset = 0;
+            for (const chunk of chunks) { out.set(chunk, offset); offset += chunk.length; }
+            return { buffer: out.buffer, name: filename };
+          } else {
+            throw new Error(`Compressão ZIP não suportada (método ${compression}). Use um zip padrão.`);
+          }
+        }
+        pos++;
+      }
+      throw new Error('Nenhum arquivo encontrado dentro do ZIP.');
+    }
+
+    function buildZip(filename, data) {
+      const enc = new TextEncoder();
+      const nameBytes = enc.encode(filename);
+      const now = new Date();
+      const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+      const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+
+      // CRC-32
+      const crcTable = new Uint32Array(256);
+      for (let i = 0; i < 256; i++) {
+        let c = i;
+        for (let j = 0; j < 8; j++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+        crcTable[i] = c;
+      }
+      let crc = 0xFFFFFFFF;
+      for (let i = 0; i < data.length; i++) crc = crcTable[(crc ^ data[i]) & 0xFF] ^ (crc >>> 8);
+      crc = (crc ^ 0xFFFFFFFF) >>> 0;
+
+      const u32 = (n) => [n & 0xFF, (n >> 8) & 0xFF, (n >> 16) & 0xFF, (n >> 24) & 0xFF];
+      const u16 = (n) => [n & 0xFF, (n >> 8) & 0xFF];
+
+      // Local file header
+      const lfh = [
+        0x50, 0x4B, 0x03, 0x04, // signature
+        ...u16(20),              // version needed
+        ...u16(0),               // flags
+        ...u16(0),               // compression (stored)
+        ...u16(dosTime), ...u16(dosDate),
+        ...u32(crc),
+        ...u32(data.length),     // compressed size
+        ...u32(data.length),     // uncompressed size
+        ...u16(nameBytes.length),
+        ...u16(0),               // extra length
+        ...nameBytes,
+      ];
+
+      const fileOffset = 0;
+
+      // Central directory header
+      const cdh = [
+        0x50, 0x4B, 0x01, 0x02, // signature
+        ...u16(20), ...u16(20),  // version made/needed
+        ...u16(0), ...u16(0),    // flags, compression
+        ...u16(dosTime), ...u16(dosDate),
+        ...u32(crc),
+        ...u32(data.length), ...u32(data.length),
+        ...u16(nameBytes.length),
+        ...u16(0), ...u16(0),    // extra, comment
+        ...u16(0),               // disk start
+        ...u16(0), ...u32(0),    // attributes
+        ...u32(fileOffset),
+        ...nameBytes,
+      ];
+
+      const cdOffset = lfh.length + data.length;
+      const cdSize = cdh.length;
+
+      // End of central directory
+      const eocd = [
+        0x50, 0x4B, 0x05, 0x06,
+        ...u16(0), ...u16(0),
+        ...u16(1), ...u16(1),
+        ...u32(cdSize),
+        ...u32(cdOffset),
+        ...u16(0),
+      ];
+
+      const total = new Uint8Array(lfh.length + data.length + cdh.length + eocd.length);
+      let off = 0;
+      total.set(lfh, off); off += lfh.length;
+      total.set(data, off); off += data.length;
+      total.set(cdh, off); off += cdh.length;
+      total.set(eocd, off);
+
+      return new Blob([total], { type: 'application/zip' });
+    }
+
+    btnApply.addEventListener('click', async () => {
+      setStatus('loading', 'Aplicando patch...');
+      btnApply.disabled = true;
+
+      try {
+        let [romBuffer, ipsBuffer] = await Promise.all([
+          romFile.arrayBuffer(),
+          ipsFile.arrayBuffer(),
+        ]);
+
+        // If ROM is a zip, extract the first file from it
+        let romName = romFile.name;
+        if (romFile.name.toLowerCase().endsWith('.zip')) {
+          setStatus('loading', 'Extraindo ROM do zip...');
+          const extracted = await extractRomFromZip(romBuffer);
+          romBuffer = extracted.buffer;
+          romName = extracted.name;
+        }
+
+        const { out, records } = applyIPS(romBuffer, ipsBuffer);
+
+        // Generate output filename
+        const ext = romName.split('.').pop();
+        const baseName = romName.replace(/\.[^.]+$/, '');
+        const outName = `${baseName}_patched.${ext}`;
+
+        // Trigger download
+        // Wrap .gba in a zip
+        const zipBlob = await buildZip(outName, out);
+        const zipName = baseName + '_patched.zip';
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = zipName;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        setStatus('success', `✅ Patch aplicado! ${records} registros processados. Download iniciado: ${zipName}`);
+      } catch (err) {
+        setStatus('error', '❌ Erro: ' + err.message);
+      }
+
+      btnApply.disabled = false;
+    });
+  </script>
+</body>
+</html>
