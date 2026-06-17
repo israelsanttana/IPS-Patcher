@@ -233,6 +233,20 @@
       zone.querySelector('.dropzone-icon').textContent = '✅';
     }
 
+    function resetApp() {
+      romFile = null;
+      ipsFile = null;
+      inputRom.value = '';
+      inputIps.value = '';
+      zoneRom.classList.remove('selected');
+      zoneRom.querySelector('.dropzone-text').textContent = 'Clique ou arraste a ROM aqui';
+      zoneRom.querySelector('.dropzone-icon').textContent = '🗂️';
+      zoneIps.classList.remove('selected');
+      zoneIps.querySelector('.dropzone-text').textContent = 'Clique ou arraste o patch aqui';
+      zoneIps.querySelector('.dropzone-icon').textContent = '🩹';
+      updateBtn();
+    }
+
     inputRom.addEventListener('change', () => {
       romFile = inputRom.files[0] || null;
       if (romFile) markSelected(zoneRom, romFile.name);
@@ -480,6 +494,7 @@
         URL.revokeObjectURL(url);
 
         setStatus('success', `✅ Patch aplicado! ${records} registros processados. Download iniciado: ${zipName}`);
+        resetApp();
       } catch (err) {
         setStatus('error', '❌ Erro: ' + err.message);
       }
